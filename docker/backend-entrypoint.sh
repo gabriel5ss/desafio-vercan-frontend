@@ -10,7 +10,15 @@ fi
 composer install --no-interaction --prefer-dist --optimize-autoloader
 
 mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
-touch "$DB_DATABASE"
+
+if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
+    sqlite_database="${DB_DATABASE:-database/database.sqlite}"
+
+    if [ "$sqlite_database" != ":memory:" ]; then
+        mkdir -p "$(dirname "$sqlite_database")"
+        touch "$sqlite_database"
+    fi
+fi
 
 if ! grep -q '^APP_KEY=base64:' .env; then
     php artisan key:generate --force
