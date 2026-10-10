@@ -58,3 +58,13 @@ npm run test
 npm run lint
 npm run build
 ```
+
+## Hooks locais do Git
+
+Para executar os testes e o lint antes de cada commit, ative o hook uma vez:
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
+O hook usa as dependências instaladas pelo `npm ci`.
