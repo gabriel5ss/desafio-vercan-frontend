@@ -20,6 +20,8 @@ fi
 
 php artisan migrate --force
 
+php artisan db:seed
+
 host_uid="${HOST_UID:-1000}"
 host_gid="${HOST_GID:-1000}"
 
