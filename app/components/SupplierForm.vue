@@ -380,7 +380,7 @@ onMounted(async () => {
         <div class="space-y-3">
           <div v-for="(phone, index) in state.primary_contact.phones" :key="`primary-phone-${index}`" class="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
             <UFormField label="Telefone" :name="`primary_contact.phones.${index}.value`" required>
-              <UInput :model-value="phone.value" placeholder="(00) 00000-0000" class="w-full" @update:model-value="phone.value = maskPhone($event || '')" />
+              <UInput :model-value="phone.value" type="tel" maxlength="15" placeholder="(00) 00000-0000" class="w-full" @update:model-value="phone.value = maskPhone($event || '')" />
             </UFormField>
             <UFormField label="Tipo" :name="`primary_contact.phones.${index}.label`" required>
               <USelect v-model="phone.label" :items="phoneTypes" placeholder="Selecione" class="w-full" />
@@ -440,7 +440,7 @@ onMounted(async () => {
           <div class="mt-5 grid gap-6 xl:grid-cols-2">
             <div class="space-y-3">
               <div v-for="(phone, phoneIndex) in contact.phones" :key="`extra-phone-${index}-${phoneIndex}`" class="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
-                <UFormField label="Telefone" :name="`additional_contacts.${index}.phones.${phoneIndex}.value`"><UInput :model-value="phone.value" placeholder="(00) 00000-0000" class="w-full" @update:model-value="phone.value = maskPhone($event || '')" /></UFormField>
+                <UFormField label="Telefone" :name="`additional_contacts.${index}.phones.${phoneIndex}.value`"><UInput :model-value="phone.value" type="tel" maxlength="15" placeholder="(00) 00000-0000" class="w-full" @update:model-value="phone.value = maskPhone($event || '')" /></UFormField>
                 <UFormField label="Tipo" :required="!!phone.value.trim()"><USelect v-model="phone.label" :items="phoneTypes" placeholder="Selecione" class="w-full" /></UFormField>
                 <UButton icon="i-lucide-trash-2" aria-label="Remover telefone" color="error" variant="ghost" class="self-end" @click="contact.phones.splice(phoneIndex, 1)" />
               </div>
