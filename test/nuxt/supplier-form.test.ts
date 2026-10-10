@@ -51,11 +51,12 @@ const SelectStub = defineComponent({
 })
 
 const clearFormFieldErrors = vi.fn()
+const setFormErrors = vi.fn()
 const FormStub = defineComponent({
   props: ['state', 'validate'],
   emits: ['submit'],
   setup(_, { expose }) {
-    expose({ clear: clearFormFieldErrors, setErrors: vi.fn() })
+    expose({ clear: clearFormFieldErrors, setErrors: setFormErrors })
   },
   template: '<form @submit.prevent="$emit(\'submit\', { data: state })"><slot /></form>',
 })
@@ -82,10 +83,15 @@ async function mountForm() {
 describe('supplier form', () => {
   beforeEach(() => {
     apiMock.states.mockResolvedValue({ data: [] })
+    apiMock.cities.mockResolvedValue({ data: [] })
+    apiMock.show.mockReset()
+    apiMock.lookupCnpj.mockReset()
     apiMock.create.mockReset()
+    apiMock.update.mockReset()
     navigateMock.mockReset()
     fetchMock.mockReset()
     clearFormFieldErrors.mockReset()
+    setFormErrors.mockReset()
   })
 
   it('switches between company and individual fields', async () => {
@@ -157,6 +163,57 @@ describe('supplier form', () => {
     wrapper.unmount()
   })
 
+  it('updates an existing supplier and maps API validation errors to the form', async () => {
+    apiMock.states.mockResolvedValue({ data: [] })
+    apiMock.show.mockResolvedValue({ data: {
+      id: 9, type: 'individual', name: 'Ana', cpf: '52998224725', active: true,
+      primary_contact: { phones: [{ value: '11987654321', label: 'Celular' }], emails: [] },
+      additional_contacts: [],
+    } })
+    apiMock.update.mockRejectedValue({ data: { errors: {
+      cpf: ['CPF já cadastrado.'],
+      street: ['Informe o logradouro.'],
+    } } })
+
+    const wrapper = await mountSuspended(SupplierForm, { props: { supplierId: 9 }, global: { stubs } })
+    await flushPromises()
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(apiMock.update).toHaveBeenCalledWith(9, expect.objectContaining({ name: 'Ana' }))
+    expect(wrapper.text()).toContain('Revise os campos destacados.')
+    expect(setFormErrors).toHaveBeenCalledWith(expect.arrayContaining([
+      { name: 'cpf', message: 'CPF já cadastrado.' },
+      { name: 'street', message: 'Informe o logradouro.' },
+    ]))
+    expect(navigateMock).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('rejects an invalid CNPJ before making the lookup request', async () => {
+    const wrapper = await mountForm()
+    const cnpj = wrapper.find('input[placeholder="00.000.000/0000-00"]')
+    await cnpj.setValue('11')
+    await cnpj.trigger('blur')
+
+    expect(apiMock.lookupCnpj).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Informe um CNPJ válido para consultar.')
+    wrapper.unmount()
+  })
+
+  it('shows CNPJ lookup errors and clears the loading state', async () => {
+    apiMock.lookupCnpj.mockRejectedValue({ data: { errors: { cnpj: ['CNPJ não encontrado.'] } } })
+    const wrapper = await mountForm()
+    const cnpj = wrapper.find('input[placeholder="00.000.000/0000-00"]')
+    await cnpj.setValue('11222333000181')
+    await cnpj.trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('CNPJ não encontrado.')
+    expect(wrapper.find('input[placeholder="00.000.000/0000-00"]').attributes('loading')).toBe('false')
+    wrapper.unmount()
+  })
+
   it('fills company data and address details from the CNPJ lookup', async () => {
     apiMock.states.mockResolvedValue({ data: [{ id: 35, code: 'SP', name: 'São Paulo' }] })
     apiMock.lookupCnpj.mockResolvedValue({ data: {
@@ -207,6 +264,69 @@ describe('supplier form', () => {
     const cityField = wrapper.findAll('label').find(label => label.text().includes('Cidade'))
     expect((cityField?.find('select').element as HTMLSelectElement).value).toBe('350')
 
+    wrapper.unmount()
+  })
+
+  it('reports invalid, missing, and unavailable CEP lookups', async () => {
+    const wrapper = await mountForm()
+    const postalCode = wrapper.find('input[placeholder="00000-000"]')
+
+    await postalCode.setValue('123')
+    await postalCode.trigger('blur')
+    expect(wrapper.text()).toContain('Informe um CEP com 8 dígitos.')
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    await postalCode.setValue('01001000')
+    fetchMock.mockResolvedValueOnce({ erro: true })
+    await postalCode.trigger('blur')
+    await flushPromises()
+    expect(wrapper.text()).toContain('CEP não encontrado.')
+
+    fetchMock.mockRejectedValueOnce(new Error('network'))
+    await postalCode.trigger('blur')
+    await flushPromises()
+    expect(wrapper.text()).toContain('Não foi possível consultar o CEP.')
+    wrapper.unmount()
+  })
+
+  it('loads cities when the state changes and reports a city service error', async () => {
+    apiMock.states.mockResolvedValue({ data: [{ id: 35, code: 'SP', name: 'São Paulo' }] })
+    apiMock.cities.mockRejectedValueOnce(new Error('API offline'))
+    const wrapper = await mountForm()
+    const stateField = wrapper.findAll('label').find(label => label.text().includes('UF'))
+    await stateField?.find('select').setValue('35')
+    await flushPromises()
+
+    expect(apiMock.cities).toHaveBeenCalledWith(35)
+    expect(wrapper.text()).toContain('Não foi possível carregar as cidades desta UF.')
+    wrapper.unmount()
+  })
+
+  it('allows managing primary contact methods and additional contact removal', async () => {
+    const wrapper = await mountForm()
+    const addPhone = wrapper.findAll('button').find(button => button.text() === 'Adicionar telefone')
+    const addEmail = wrapper.findAll('button').find(button => button.text() === 'Adicionar e-mail')
+    await addPhone?.trigger('click')
+    await addEmail?.trigger('click')
+    expect(wrapper.findAll('input[placeholder="(00) 00000-0000"]')).toHaveLength(2)
+
+    const addContact = wrapper.findAll('button').find(button => button.text().includes('Adicionar contato'))
+    await addContact?.trigger('click')
+    const removeContact = wrapper.findAll('button').find(button => button.text() === 'Remover')
+    await removeContact?.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Não há contatos adicionais.')
+    wrapper.unmount()
+  })
+
+  it('collapses and expands input cards', async () => {
+    const wrapper = await mountForm()
+    const collapseButton = wrapper.find('button[aria-label="Recolher dados do fornecedor"]')
+    await collapseButton.trigger('click')
+    expect(wrapper.find('input[placeholder="00.000.000/0000-00"]').exists()).toBe(false)
+    await wrapper.find('button[aria-label="Expandir dados do fornecedor"]').trigger('click')
+    expect(wrapper.find('input[placeholder="00.000.000/0000-00"]').exists()).toBe(true)
     wrapper.unmount()
   })
 
