@@ -498,7 +498,7 @@ onMounted(async () => {
         </div>
       </template>
       <Transition name="card-collapse">
-      <UEditor v-if="!collapsedCards.observation" v-slot="{ editor }" v-model="state.observation" content-type="json" placeholder="Escreva uma observação" class="min-h-60 rounded-md border border-default bg-default p-4">
+      <UEditor v-if="!collapsedCards.observation" v-slot="{ editor }" v-model="state.observation" content-type="json" placeholder="Escreva uma observação" :ui="{ base: 'min-h-48 cursor-text' }" class="min-h-60 rounded-md border border-default bg-default p-4">
         <div role="toolbar" aria-label="Formatação da observação" class="mb-3 flex flex-wrap items-center gap-1 rounded-md border border-default bg-elevated p-1">
           <UButton icon="i-lucide-bold" aria-label="Negrito" title="Negrito" color="neutral" active-color="primary" variant="ghost" active-variant="soft" size="sm" :active="editor.isActive('bold')" @mousedown.prevent @click="editor.chain().focus().toggleBold().run()" />
           <UButton icon="i-lucide-italic" aria-label="Itálico" title="Itálico" color="neutral" active-color="primary" variant="ghost" active-variant="soft" size="sm" :active="editor.isActive('italic')" @mousedown.prevent @click="editor.chain().focus().toggleItalic().run()" />
