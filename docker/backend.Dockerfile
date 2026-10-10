@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libonig-dev \
         libsqlite3-dev \
         libzip-dev \
+        gosu \
         unzip \
     && docker-php-ext-install -j"$(nproc)" bcmath intl mbstring pdo_sqlite zip \
     && rm -rf /var/lib/apt/lists/*

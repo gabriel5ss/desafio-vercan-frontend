@@ -30,6 +30,8 @@ services:
       APP_ENV: local
       APP_DEBUG: "true"
       APP_URL: http://localhost:8000
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
       DB_CONNECTION: sqlite
       DB_DATABASE: /var/lib/laravel-data/database.sqlite
       CACHE_STORE: file

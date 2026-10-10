@@ -6,10 +6,12 @@ Frontend em Nuxt 4. O backend Laravel fica no projeto irmão `desafio-vercan-bac
 
 Pré-requisitos: Docker Engine e Docker Compose.
 
-Na pasta deste projeto, inicie o frontend e o backend:
+Na pasta deste projeto, inicie o frontend e o backend. Os arquivos gerados pelo
+Laravel usam por padrão UID/GID `1000`. Se seu usuário tiver outros valores,
+informe-os ao iniciar:
 
 ```bash
-docker compose up --build
+HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose up --build
 ```
 
 Acesse:

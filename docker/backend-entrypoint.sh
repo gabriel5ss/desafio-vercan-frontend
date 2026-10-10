@@ -24,6 +24,15 @@ if ! grep -q '^APP_KEY=base64:' .env; then
     php artisan key:generate --force
 fi
 
+php artisan config:clear
 php artisan migrate --force
 
-exec php artisan serve --host=0.0.0.0 --port=8000
+host_uid="${HOST_UID:-1000}"
+host_gid="${HOST_GID:-1000}"
+
+chown -R "$host_uid:$host_gid" .env vendor storage bootstrap/cache
+if [ -d /var/lib/laravel-data ]; then
+    chown -R "$host_uid:$host_gid" /var/lib/laravel-data
+fi
+
+exec gosu "$host_uid:$host_gid" php artisan serve --host=0.0.0.0 --port=8000
