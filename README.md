@@ -2,7 +2,7 @@
 
 Frontend em Nuxt 4. O backend Laravel fica no projeto irmão `desafio-vercan-backend`.
 
-https://github.com/gabriel5ss/desafio-vercan-backend
+Backend: https://github.com/gabriel5ss/desafio-vercan-backend
 
 ## Docker
 
