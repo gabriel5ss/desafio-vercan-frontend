@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev \
         gosu \
         unzip \
-    && docker-php-ext-install -j"$(nproc)" bcmath intl mbstring pdo_sqlite zip \
+    && docker-php-ext-install -j"$(nproc)" bcmath intl mbstring pdo_mysql pdo_sqlite zip \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

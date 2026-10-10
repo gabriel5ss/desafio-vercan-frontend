@@ -1,4 +1,20 @@
 services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: vercan
+      MYSQL_USER: vercan
+      MYSQL_PASSWORD: vercan
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
   frontend:
     build:
       context: .
@@ -32,18 +48,24 @@ services:
       APP_URL: http://localhost:8000
       HOST_UID: ${HOST_UID:-1000}
       HOST_GID: ${HOST_GID:-1000}
-      DB_CONNECTION: sqlite
-      DB_DATABASE: /var/lib/laravel-data/database.sqlite
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: vercan
+      DB_USERNAME: vercan
+      DB_PASSWORD: vercan
       CACHE_STORE: file
       SESSION_DRIVER: file
       QUEUE_CONNECTION: sync
     volumes:
       - ../desafio-vercan-backend:/var/www/html
       - backend_vendor:/var/www/html/vendor
-      - backend_database:/var/lib/laravel-data
+    depends_on:
+      mysql:
+        condition: service_healthy
 
 volumes:
   frontend_node_modules:
   frontend_nuxt:
   backend_vendor:
-  backend_database:
+  mysql_data:

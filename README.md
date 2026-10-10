@@ -19,6 +19,8 @@ Acesse:
 - Frontend: http://localhost:3000
 - API: http://localhost:8000
 
+O Compose também inicia o MySQL e persiste os dados no volume `mysql_data`.
+
 Para criar o usuário e carregar estados e cidades, em outro terminal execute:
 
 ```bash
