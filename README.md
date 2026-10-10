@@ -1,4 +1,4 @@
-# Verkan — Frontend
+# vercan — Frontend
 
 Frontend em Nuxt 4. O backend Laravel fica no projeto irmão `desafio-vercan-backend`.
 
