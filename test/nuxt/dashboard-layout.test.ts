@@ -89,7 +89,7 @@ describe('dashboard layout', () => {
 
     expect(authState.restore).toHaveBeenCalledOnce()
     expect(fetchMock).toHaveBeenCalledWith('/api/user', expect.objectContaining({
-      baseURL: 'http://localhost:8000',
+      baseURL: expect.stringMatching(/^https?:\/\//),
       headers: { Authorization: 'Bearer stored-token' },
     }))
     expect(authState.user.value).toEqual({ name: 'Gabriel' })

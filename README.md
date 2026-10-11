@@ -1,6 +1,8 @@
 # vercan — Frontend
 
-Frontend em Nuxt 4. O backend Laravel fica no projeto irmão `desafio-vercan-backend`.
+Frontend em Nuxt 4, com **Nuxt UI** (`@nuxt/ui`) para componentes e **Tailwind
+CSS 4** para estilos. O backend Laravel fica no projeto irmão
+`desafio-vercan-backend`.
 
 Backend: https://github.com/gabriel5ss/desafio-vercan-backend
 
@@ -8,11 +10,12 @@ Backend: https://github.com/gabriel5ss/desafio-vercan-backend
 
 Pré-requisitos: Docker Engine e Docker Compose.
 
-Na pasta deste projeto, inicie o frontend e o backend. Os arquivos gerados pelo
-Laravel usam por padrão UID/GID `1000`. Se seu usuário tiver outros valores,
-informe-os ao iniciar:
+Na pasta deste projeto, copie o ambiente local e inicie o frontend e o backend.
+Os arquivos gerados pelo Laravel usam por padrão UID/GID `1000`. Se seu usuário
+tiver outros valores, informe-os ao iniciar:
 
 ```bash
+cp .env.example .env.local
 HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose --env-file .env.local up --build
 ```
 
@@ -20,6 +23,19 @@ Acesse:
 
 - Frontend: http://localhost:3000
 - API: http://localhost:8089
+
+O frontend escuta na porta `3000` do container e o Compose a publica em
+`3000` no host (`3000:3000`). O backend de desenvolvimento escuta em `8000` no
+container e é publicado em `8089` no host (`8089:8000`). A URL pública usada
+pelo navegador vem de `NUXT_PUBLIC_API_BASE` em `.env.local`; mantenha-a
+apontando para a porta publicada do backend, sem acrescentar `/api`.
+
+Se trocar somente uma porta do host, altere o valor à esquerda do mapeamento no
+`docker-compose.yml` e atualize `NUXT_PUBLIC_API_BASE` para a porta publicada da
+API. A porta interna do backend é `8000` nesta configuração integrada. O
+Compose standalone do backend usa `8089:8089`; como ambos publicam `8089` no
+host, não inicie os dois Composes ao mesmo tempo sem mudar uma das portas do
+host.
 
 O Compose também inicia o MySQL e persiste os dados no volume `mysql_data`.
 
@@ -52,6 +68,9 @@ O frontend fica disponível em http://localhost:3000 e usa a API em
 `http://localhost:8089` por padrão. Ajuste `NUXT_PUBLIC_API_BASE` em
 `.env.local` para usar outro endereço. Informe a URL raiz do backend, sem `/api`,
 pois os caminhos da API já incluem esse prefixo.
+
+Se mudar a porta local do backend, atualize `NUXT_PUBLIC_API_BASE` para a nova
+porta acessível pelo navegador.
 
 ### Cloudflare
 
