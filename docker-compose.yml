@@ -25,7 +25,7 @@ services:
       - "3000:3000"
     environment:
       NUXT_API_INTERNAL_BASE: http://backend:8000
-      NUXT_PUBLIC_API_BASE: http://localhost:8000
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:8089}
     volumes:
       - .:/app
       - frontend_node_modules:/app/node_modules
@@ -41,11 +41,11 @@ services:
         laravel: ../desafio-vercan-backend
     working_dir: /var/www/html
     ports:
-      - "8000:8000"
+      - "8089:8000"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
-      APP_URL: http://localhost:8000
+      APP_URL: http://localhost:8089
       HOST_UID: ${HOST_UID:-1000}
       HOST_GID: ${HOST_GID:-1000}
       DB_CONNECTION: mysql
